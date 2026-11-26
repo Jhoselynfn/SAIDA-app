@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
   component: App,
 });
 
-type Screen = "splash" | "choice" | "register" | "menu" | "navegar" | "comer" | "decide" | "final" | "premios" | "saber";
+type Screen = "splash" | "choice" | "register" | "menu" | "navegar" | "comer" | "decide" | "final" | "premios" | "saber" | "consejo" | "quiz";
 const APP = "Tilcayo y el Río";
 
 function speak(text: string) {
@@ -61,6 +61,8 @@ function App() {
       {screen === "final" && <Final points={points} registered={registered} onPrizes={() => setScreen(registered ? "premios" : "register")} onMenu={() => setScreen("menu")} />}
       {screen === "premios" && <Premios name={name} points={points} back={() => setScreen("menu")} />}
       {screen === "saber" && <SaberMas back={() => setScreen(from)} />}
+      {screen === "consejo" && <Consejo back={() => setScreen("menu")} />}
+      {screen === "quiz" && <Quiz back={() => setScreen("menu")} onPass={() => { setPoints((p) => p + (done["quiz"] ? 0 : 20)); setDone({ ...done, quiz: true }); }} />}
     </main>
   );
 }
@@ -129,7 +131,7 @@ function Menu({ name, registered, points, done, go }: { name: string; registered
     <div className="min-h-screen p-5">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src={tilcayo.url} alt="" className="h-12 w-12 rounded-full border-2 border-primary object-cover object-top" />
+          <button onClick={() => go("consejo")} aria-label="Consejo de Tilcayo"><img src={tilcayo.url} alt="" className="h-12 w-12 animate-bob rounded-full border-2 border-primary object-cover object-top" /></button>
           <div>
             <p className="text-xs text-muted-foreground">{registered ? "Hola," : "Modo"}</p>
             <p className="font-display text-xl font-extrabold">{registered ? name : "Solo jugar"}</p>
@@ -150,6 +152,8 @@ function Menu({ name, registered, points, done, go }: { name: string; registered
           </button>
         ))}
       </div>
+      <button onClick={() => go("quiz")} className="btn-game mt-5 w-full bg-primary py-4 text-xl text-primary-foreground">🎓 Quiz de certificación {done["quiz"] && "✅"}</button>
+      <p className="mt-2 text-center text-xs text-muted-foreground">Toca a Tilcayo para un consejo verificado 💡</p>
       <p className="mt-8 text-center text-[11px] text-muted-foreground">Prototipo · Recomendaciones pendientes de validación por la autoridad sanitaria</p>
     </div>
   );
@@ -389,5 +393,69 @@ function Premios({ name, points, back }: { name: string; points: number; back: (
         })}
       </div>
     </div>
+  );
+}
+
+const consejos = [
+  "Prefiere peces pequeños que comen plantas, como sábalo, pacú o bogo. Los grandes cazadores, cómelos pocas veces.",
+  "Nunca toques ni calientes el mercurio. Lávate las manos y aléjate de donde queman amalgama.",
+  "Las mujeres embarazadas y los niños deben cuidarse más del mercurio en el pescado.",
+  "Cepíllate los dientes para prevenir caries. Así no necesitarás amalgamas con mercurio.",
+  "Si sientes hormigueo, temblores o mucho cansancio, acude a la posta de salud.",
+];
+
+function Consejo({ back }: { back: () => void }) {
+  const [i, setI] = useState(() => 0);
+  const t = consejos[i]!;
+  return (
+    <div className="flex min-h-screen flex-col items-center p-6 text-center">
+      <button onClick={back} className="card-game h-10 w-10 self-start font-bold">←</button>
+      <img src={tilcayo.url} alt="Tilcayo" className="mt-4 h-40 w-40 animate-bob rounded-full border-4 border-secondary object-cover object-top" />
+      <span className="mt-4 rounded-full bg-accent px-4 py-1 font-display text-sm font-extrabold text-accent-foreground">✔️ CONSEJO VERIFICADO</span>
+      <div className="card-game mt-4 p-5 text-lg">{t}</div>
+      <p className="mt-2 text-[11px] text-muted-foreground">Fuente: Guía ORO 3.1 · pendiente de validación sanitaria</p>
+      <button onClick={() => speak(t)} className="btn-game mt-6 w-full bg-primary py-4 text-xl text-primary-foreground">🔊 Escuchar</button>
+      <button onClick={() => setI((i + 1) % consejos.length)} className="btn-game mt-3 w-full bg-secondary py-3 text-lg text-secondary-foreground">Otro consejo 💡</button>
+    </div>
+  );
+}
+
+const quiz = [
+  { q: "¿Dónde se junta más el mercurio en el río?", o: ["Agua que corre rápido", "Agua quieta y barro del fondo"], a: 1 },
+  { q: "¿Qué pescado es más seguro comer seguido?", o: ["Sábalo", "Dorado"], a: 0 },
+  { q: "¿Qué empaste no tiene mercurio?", o: ["Resina", "Amalgama"], a: 0 },
+  { q: "¿Se puede tocar el mercurio con las manos?", o: ["Sí, no pasa nada", "No, es peligroso"], a: 1 },
+  { q: "Si tienes temblores u hormigueo, ¿qué haces?", o: ["Ir a la posta de salud", "Esperar"], a: 0 },
+];
+
+function Quiz({ back, onPass }: { back: () => void; onPass: () => void }) {
+  const [i, setI] = useState(0);
+  const [ok, setOk] = useState(0);
+  const [end, setEnd] = useState(false);
+  const pass = ok >= 4;
+  const answer = (k: number) => {
+    const n = ok + (k === quiz[i]!.a ? 1 : 0);
+    setOk(n);
+    if (i + 1 >= quiz.length) { setEnd(true); if (n >= 4) onPass(); } else setI(i + 1);
+  };
+  if (end) return (
+    <div className={`flex min-h-screen flex-col items-center justify-center p-6 text-center ${pass ? "bg-primary text-primary-foreground" : ""}`}>
+      {pass ? <Badge /> : <span className="text-7xl">😿</span>}
+      <p className="mt-8 font-display text-3xl font-extrabold">{pass ? "¡CERTIFICACIÓN APROBADA! 🎓" : "Casi lo logras"}</p>
+      <p className="mt-2 text-lg">Respuestas correctas: {ok}/{quiz.length}</p>
+      {pass && <p className="mt-1 font-bold text-secondary">+20 puntos ⭐ · Agente SAIDA certificado</p>}
+      {!pass && <button onClick={() => { setI(0); setOk(0); setEnd(false); }} className="btn-game mt-6 w-full bg-secondary py-4 text-xl text-secondary-foreground">Intentar otra vez</button>}
+      <button onClick={back} className="mt-4 text-sm underline">Volver al menú</button>
+    </div>
+  );
+  const q = quiz[i]!;
+  return (
+    <GameShell title="🎓 Quiz de certificación" back={back} progress={i / quiz.length}>
+      <Bubble text={q.q} />
+      <div className="mt-6 flex flex-col gap-4">
+        {q.o.map((o, k) => <button key={o} onClick={() => answer(k)} className="card-game p-5 font-display text-xl font-bold active:scale-95">{o}</button>)}
+      </div>
+      <p className="mt-4 text-center text-sm text-muted-foreground">Pregunta {i + 1}/{quiz.length} · Necesitas 4 para aprobar</p>
+    </GameShell>
   );
 }
