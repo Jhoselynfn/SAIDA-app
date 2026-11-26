@@ -5,10 +5,10 @@ import tilcayo from "@/assets/tilcayo.jpg.asset.json";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Tilcayo y el Río — Juego sobre mercurio y pescado seguro" },
-      { name: "description", content: "Simulación del juego: aprende con Tilcayo qué pescados comer seguido y cómo cuidar a tu familia del mercurio." },
+      { title: "Tilcayo y el Río — Juego sobre mercurio y salud" },
+      { name: "description", content: "Navega, come y decide con Tilcayo: aprende a cuidarte del mercurio y conviértete en Agente SAIDA." },
       { property: "og:title", content: "Tilcayo y el Río" },
-      { property: "og:description", content: "Juego para comunidades ribereñas: el río, los peces y la familia." },
+      { property: "og:description", content: "Tres juegos para aprender sobre mercurio, pescado seguro y buenas decisiones." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/")({
   component: App,
 });
 
-type Screen = "splash" | "login" | "map" | "w1" | "w2" | "w3";
+type Screen = "splash" | "choice" | "register" | "menu" | "navegar" | "comer" | "decide" | "final" | "premios" | "saber";
 const APP = "Tilcayo y el Río";
 
 function speak(text: string) {
@@ -30,29 +30,37 @@ function speak(text: string) {
 function App() {
   const [screen, setScreen] = useState<Screen>("splash");
   const [name, setName] = useState("");
-  const [drops, setDrops] = useState(0);
+  const [registered, setRegistered] = useState(false);
+  const [points, setPoints] = useState(0);
   const [done, setDone] = useState<Record<string, boolean>>({});
+  const [from, setFrom] = useState<Screen>("menu");
 
   useEffect(() => {
     if (screen !== "splash") return;
-    const t = setTimeout(() => setScreen("login"), 2800);
+    const t = setTimeout(() => setScreen("choice"), 2800);
     return () => clearTimeout(t);
   }, [screen]);
 
-  const finish = (w: string, earned: number) => {
-    setDrops((d) => d + earned);
-    setDone((x) => ({ ...x, [w]: true }));
-    setScreen("map");
+  const finish = (g: string, earned: number) => {
+    setPoints((p) => p + (done[g] ? 0 : earned));
+    const nd = { ...done, [g]: true };
+    setDone(nd);
+    setScreen(nd["navegar"] && nd["comer"] && nd["decide"] ? "final" : "menu");
   };
+  const saber = () => { setFrom(screen); setScreen("saber"); };
 
   return (
     <main className="mx-auto min-h-screen max-w-md bg-background">
-      {screen === "splash" && <Splash onSkip={() => setScreen("login")} />}
-      {screen === "login" && <Login onEnter={(n) => { setName(n); setScreen("map"); }} />}
-      {screen === "map" && <WorldMap name={name} drops={drops} done={done} go={setScreen} />}
-      {screen === "w1" && <World1 onEnd={(e) => finish("w1", e)} back={() => setScreen("map")} />}
-      {screen === "w2" && <World2 onEnd={(e) => finish("w2", e)} back={() => setScreen("map")} />}
-      {screen === "w3" && <World3 onEnd={(e) => finish("w3", e)} back={() => setScreen("map")} />}
+      {screen === "splash" && <Splash onSkip={() => setScreen("choice")} />}
+      {screen === "choice" && <Choice onPrize={() => setScreen("register")} onPlay={() => { setRegistered(false); setScreen("menu"); }} />}
+      {screen === "register" && <Register back={() => setScreen("choice")} onEnter={(n) => { setName(n); setRegistered(true); setScreen("menu"); }} />}
+      {screen === "menu" && <Menu name={name} registered={registered} points={points} done={done} go={setScreen} />}
+      {screen === "navegar" && <Navegar onEnd={(e) => finish("navegar", e)} back={() => setScreen("menu")} />}
+      {screen === "comer" && <Comer onEnd={(e) => finish("comer", e)} back={() => setScreen("menu")} />}
+      {screen === "decide" && <Decide onEnd={(e) => finish("decide", e)} back={() => setScreen("menu")} saber={saber} />}
+      {screen === "final" && <Final points={points} registered={registered} onPrizes={() => setScreen(registered ? "premios" : "register")} onMenu={() => setScreen("menu")} />}
+      {screen === "premios" && <Premios name={name} points={points} back={() => setScreen("menu")} />}
+      {screen === "saber" && <SaberMas back={() => setScreen(from)} />}
     </main>
   );
 }
@@ -60,89 +68,88 @@ function App() {
 function Splash({ onSkip }: { onSkip: () => void }) {
   return (
     <button onClick={onSkip} className="flex min-h-screen w-full flex-col items-center justify-center bg-primary px-6 text-primary-foreground">
-      <div className="animate-pop">
-        <img src={tilcayo.url} alt="Tilcayo, el gatito del monte" className="h-72 w-auto animate-bob object-contain" />
-      </div>
+      <img src={tilcayo.url} alt="Tilcayo, el gatito del monte" className="h-72 w-auto animate-bob object-contain" />
       <h1 className="mt-4 animate-pop text-5xl font-extrabold leading-none text-secondary">{APP}</h1>
-      <p className="mt-3 text-sm opacity-80">El río · Los peces · Mi familia</p>
+      <p className="mt-3 text-sm opacity-80">Navega · Come · Decide</p>
       <div className="mt-10 flex gap-2">
-        {[0, 1, 2].map((i) => (
-          <span key={i} className="h-3 w-3 animate-bounce rounded-full bg-secondary" style={{ animationDelay: `${i * 0.15}s` }} />
-        ))}
+        {[0, 1, 2].map((i) => <span key={i} className="h-3 w-3 animate-bounce rounded-full bg-secondary" style={{ animationDelay: `${i * 0.15}s` }} />)}
       </div>
     </button>
   );
 }
 
-function Login({ onEnter }: { onEnter: (n: string) => void }) {
-  const [n, setN] = useState("");
-  const [lang, setLang] = useState("Castellano");
+function Choice({ onPrize, onPlay }: { onPrize: () => void; onPlay: () => void }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <div className="flex flex-col items-center rounded-b-[3rem] bg-primary px-6 pb-8 pt-10 text-primary-foreground">
+    <div className="flex min-h-screen flex-col p-6">
+      <div className="flex flex-col items-center pt-6">
         <img src={tilcayo.url} alt="" className="h-32 w-32 rounded-full border-4 border-secondary object-cover object-top" />
-        <h1 className="mt-3 text-3xl font-extrabold text-secondary">{APP}</h1>
-        <p className="text-sm opacity-80">¡Hola! Soy Tilcayo, tu guía.</p>
+        <h1 className="mt-3 text-3xl font-extrabold text-primary">{APP}</h1>
+        <p className="text-sm text-muted-foreground">¿Cómo quieres jugar?</p>
       </div>
-      <form className="flex flex-1 flex-col gap-4 p-6" onSubmit={(e) => { e.preventDefault(); onEnter(n.trim() || "Amigo"); }}>
-        <label className="font-display text-lg font-bold">¿Cómo te llamas?</label>
-        <input value={n} onChange={(e) => setN(e.target.value)} placeholder="Tu nombre" className="rounded-2xl border-2 border-input bg-card px-4 py-3 text-lg outline-none focus:border-primary" />
-        <label className="font-display text-lg font-bold">Idioma</label>
-        <div className="grid grid-cols-2 gap-2">
-          {["Castellano", "Tsimane'", "Tacana", "Ese Ejja"].map((l) => (
-            <button type="button" key={l} onClick={() => setLang(l)} className={`rounded-2xl border-2 px-3 py-3 font-bold ${lang === l ? "border-primary bg-primary text-primary-foreground" : "border-input bg-card"}`}>{l}</button>
-          ))}
-        </div>
-        <button className="btn-game mt-auto bg-secondary py-4 text-xl text-secondary-foreground">¡A jugar!</button>
-        <p className="text-center text-xs text-muted-foreground">Funciona sin internet · Audio en lengua local (simulación)</p>
-      </form>
+      <div className="mt-8 flex flex-1 flex-col gap-5">
+        <button onClick={onPrize} className="btn-game flex flex-1 flex-col items-center justify-center gap-2 bg-secondary p-6 text-secondary-foreground">
+          <span className="text-6xl">🏆</span>
+          <span className="text-2xl">Ganar premios</span>
+          <span className="text-sm font-normal opacity-80">Regístrate y guarda tus puntos</span>
+        </button>
+        <button onClick={onPlay} className="btn-game flex flex-1 flex-col items-center justify-center gap-2 bg-accent p-6 text-accent-foreground">
+          <span className="text-6xl">🎮</span>
+          <span className="text-2xl">Solo jugar</span>
+          <span className="text-sm font-normal opacity-80">Entra directo, sin registro</span>
+        </button>
+      </div>
     </div>
   );
 }
 
-const worlds = [
-  { id: "w1" as const, n: 1, title: "El Río", emoji: "🌊", learn: "Dónde se junta el mercurio", color: "bg-river" },
-  { id: "w2" as const, n: 2, title: "Los Peces", emoji: "🐟", learn: "Qué pescado comer y cada cuánto", color: "bg-accent" },
-  { id: "w3" as const, n: 3, title: "Mi Familia", emoji: "🏡", learn: "Cuidar a embarazadas y niños", color: "bg-secondary" },
+function Register({ onEnter, back }: { onEnter: (n: string) => void; back: () => void }) {
+  const [n, setN] = useState("");
+  const [c, setC] = useState("");
+  return (
+    <form className="flex min-h-screen flex-col gap-4 p-6" onSubmit={(e) => { e.preventDefault(); onEnter(n.trim() || "Amigo"); }}>
+      <button type="button" onClick={back} className="card-game h-10 w-10 font-bold">←</button>
+      <h1 className="text-3xl font-extrabold">Registro 🏆</h1>
+      <label className="font-display text-lg font-bold">Tu nombre</label>
+      <input value={n} onChange={(e) => setN(e.target.value)} placeholder="Nombre" className="rounded-2xl border-2 border-input bg-card px-4 py-3 text-lg outline-none focus:border-primary" />
+      <label className="font-display text-lg font-bold">Tu comunidad</label>
+      <input value={c} onChange={(e) => setC(e.target.value)} placeholder="Comunidad" className="rounded-2xl border-2 border-input bg-card px-4 py-3 text-lg outline-none focus:border-primary" />
+      <button className="btn-game mt-auto bg-secondary py-4 text-xl text-secondary-foreground">¡Empezar!</button>
+    </form>
+  );
+}
+
+const games = [
+  { id: "navegar" as const, title: "NAVEGAR", emoji: "🛶", learn: "Recorre el río y descubre dónde se junta el mercurio", color: "bg-river" },
+  { id: "comer" as const, title: "COMER", emoji: "🐟", learn: "Alimenta a Tilcayo con pescado seguro", color: "bg-accent" },
+  { id: "decide" as const, title: "DECIDE", emoji: "🤔", learn: "Elige la mejor opción para tu salud", color: "bg-secondary" },
 ];
 
-function WorldMap({ name, drops, done, go }: { name: string; drops: number; done: Record<string, boolean>; go: (s: Screen) => void }) {
+function Menu({ name, registered, points, done, go }: { name: string; registered: boolean; points: number; done: Record<string, boolean>; go: (s: Screen) => void }) {
   return (
     <div className="min-h-screen p-5">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img src={tilcayo.url} alt="" className="h-12 w-12 rounded-full border-2 border-primary object-cover object-top" />
           <div>
-            <p className="text-xs text-muted-foreground">Hola,</p>
-            <p className="font-display text-xl font-extrabold">{name}</p>
+            <p className="text-xs text-muted-foreground">{registered ? "Hola," : "Modo"}</p>
+            <p className="font-display text-xl font-extrabold">{registered ? name : "Solo jugar"}</p>
           </div>
         </div>
-        <div className="card-game px-4 py-2 font-display font-extrabold text-primary">💧 {drops}</div>
+        <div className="card-game px-4 py-2 font-display font-extrabold text-primary">⭐ {points}</div>
       </header>
-      <p className="mt-6 font-display text-2xl font-extrabold">Elige un mundo</p>
-      <p className="text-sm text-muted-foreground">Gana gotas de sabiduría 💧</p>
-      <div className="relative mt-5 flex flex-col gap-5">
-        {worlds.map((w, i) => {
-          const locked = i > 0 && !done[worlds[i - 1]!.id];
-          return (
-            <button key={w.id} disabled={locked} onClick={() => go(w.id)} className={`card-game flex items-center gap-4 p-4 text-left transition ${locked ? "opacity-50" : "active:scale-95"} ${i % 2 ? "ml-8" : "mr-8"}`}>
-              <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl ${w.color}`}>{locked ? "🔒" : w.emoji}</span>
-              <span className="flex-1">
-                <span className="block text-xs font-bold text-muted-foreground">MUNDO {w.n}</span>
-                <span className="block font-display text-xl font-extrabold">{w.title}</span>
-                <span className="block text-sm text-muted-foreground">{w.learn}</span>
-              </span>
-              {done[w.id] && <span className="text-2xl">⭐</span>}
-            </button>
-          );
-        })}
+      <p className="mt-6 font-display text-2xl font-extrabold">Elige un juego</p>
+      <div className="mt-5 flex flex-col gap-4">
+        {games.map((g) => (
+          <button key={g.id} onClick={() => go(g.id)} className="card-game flex items-center gap-4 p-5 text-left transition active:scale-95">
+            <span className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-4xl ${g.color}`}>{g.emoji}</span>
+            <span className="flex-1">
+              <span className="block font-display text-2xl font-extrabold">{g.title}</span>
+              <span className="block text-sm text-muted-foreground">{g.learn}</span>
+            </span>
+            {done[g.id] && <span className="text-2xl">✅</span>}
+          </button>
+        ))}
       </div>
-      {done["w3"] && (
-        <div className="card-game mt-6 animate-pop bg-primary p-5 text-center text-primary-foreground">
-          <p className="font-display text-2xl font-extrabold text-secondary">¡Eres Guardián del Río!</p>
-          <p className="text-sm">Comparte lo aprendido con tu comunidad.</p>
-        </div>
-      )}
       <p className="mt-8 text-center text-[11px] text-muted-foreground">Prototipo · Recomendaciones pendientes de validación por la autoridad sanitaria</p>
     </div>
   );
@@ -163,75 +170,54 @@ function GameShell({ title, back, children, progress }: { title: string; back: (
   );
 }
 
-function Tilcayo({ text }: { text: string }) {
+function Bubble({ text, sad = false, big = false }: { text: string; sad?: boolean; big?: boolean }) {
   return (
-    <div className="mt-3 flex items-start gap-3">
-      <img src={tilcayo.url} alt="Tilcayo" className="h-14 w-14 shrink-0 rounded-full object-cover object-top" />
-      <div className="card-game relative flex-1 p-3 text-sm">
+    <div className="mt-3 flex items-end gap-3">
+      <div className="relative shrink-0">
+        <img src={tilcayo.url} alt="Tilcayo" className={`${big ? "h-28 w-28" : "h-16 w-16"} rounded-full object-cover object-top transition ${sad ? "grayscale" : "animate-bob"}`} />
+        {sad && <span className="absolute -right-1 -top-1 text-3xl">😢</span>}
+      </div>
+      <div className="card-game relative mb-4 flex-1 rounded-bl-none p-3 text-sm">
         {text}
-        <button onClick={() => speak(text)} className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">🔊 Escuchar</button>
+        <button onClick={() => speak(text)} className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">🔊</button>
       </div>
     </div>
   );
 }
 
-function Feedback({ ok, text, onNext }: { ok: boolean; text: string; onNext: () => void }) {
+function Sheet({ ok, title, text, onNext, saber }: { ok: boolean; title: string; text: string; onNext: () => void; saber?: () => void }) {
   return (
-    <div className={`fixed inset-x-0 bottom-0 mx-auto max-w-md animate-pop rounded-t-3xl p-5 ${ok ? "bg-accent text-accent-foreground" : "bg-destructive text-destructive-foreground"}`}>
-      <p className="font-display text-xl font-extrabold">{ok ? "¡Muy bien! +1 💧" : "¡Casi!"}</p>
+    <div className={`fixed inset-x-0 bottom-0 z-10 mx-auto max-w-md animate-pop rounded-t-3xl p-5 ${ok ? "bg-accent text-accent-foreground" : "bg-destructive text-destructive-foreground"}`}>
+      <p className="font-display text-xl font-extrabold">{title}</p>
       <p className="mt-1 text-sm">{text}</p>
+      {saber && <button onClick={saber} className="mt-2 text-sm font-bold underline">📖 SABER MÁS</button>}
       <button onClick={onNext} className="btn-game mt-4 w-full bg-card py-3 text-lg text-foreground">Seguir</button>
     </div>
   );
 }
 
-function Quiz<T extends { q: string; options: string[]; correct: number; tip: string; art: string }>({ items, title, intro, back, onEnd }: { items: T[]; title: string; intro: string; back: () => void; onEnd: (e: number) => void }) {
-  const [i, setI] = useState(0);
-  const [pick, setPick] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const item = items[i]!;
-  const next = () => {
-    if (i + 1 >= items.length) return onEnd(score);
-    setI(i + 1); setPick(null);
-  };
-  return (
-    <GameShell title={title} back={back} progress={(i + (pick !== null ? 1 : 0)) / items.length}>
-      {i === 0 && pick === null && <Tilcayo text={intro} />}
-      <div className="card-game mt-5 flex h-36 items-center justify-center text-7xl">{item.art}</div>
-      <p className="mt-5 font-display text-xl font-bold">{item.q}</p>
-      <div className="mt-3 flex flex-col gap-3 pb-48">
-        {item.options.map((o, k) => (
-          <button key={o} disabled={pick !== null} onClick={() => { setPick(k); if (k === item.correct) setScore((s) => s + 1); }}
-            className={`rounded-2xl border-2 p-4 text-left font-bold transition ${pick === null ? "border-input bg-card active:scale-95" : k === item.correct ? "border-accent bg-accent text-accent-foreground" : k === pick ? "border-destructive bg-card" : "border-input bg-card opacity-50"}`}>
-            {o}
-          </button>
-        ))}
-      </div>
-      {pick !== null && <Feedback ok={pick === item.correct} text={item.tip} onNext={next} />}
-    </GameShell>
-  );
-}
-
+/* NAVEGAR */
 const zones = [
   { id: "a", label: "Agua que corre rápido", x: "15%", y: "18%", high: false },
   { id: "b", label: "Remanso / agua quieta", x: "60%", y: "40%", high: true },
-  { id: "c", label: "Barro del fondo (sedimento)", x: "25%", y: "62%", high: true },
+  { id: "c", label: "Barro del fondo", x: "25%", y: "62%", high: true },
   { id: "d", label: "Lago o curiche", x: "68%", y: "80%", high: true },
 ];
 
-function World1({ onEnd, back }: { onEnd: (e: number) => void; back: () => void }) {
+function Navegar({ onEnd, back }: { onEnd: (e: number) => void; back: () => void }) {
   const [found, setFound] = useState<string[]>([]);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const total = zones.filter((z) => z.high).length;
+  const tip = found.length === 0 ? "¡Sube a mi canoa! El mercurio baja desde las minas. Toca los lugares del río donde se junta más." : found.length < total ? `¡Bien! Llevamos ${found.length}. Sigue buscando donde el agua descansa.` : "¡Encontraste todos! Ahí los peces se cargan de mercurio.";
   const tap = (z: (typeof zones)[number]) => {
     if (found.includes(z.id)) return;
-    if (z.high) { setFound([...found, z.id]); setMsg({ ok: true, text: `${z.label}: aquí el mercurio se asienta y se transforma en metilmercurio, que pasa a los peces.` }); }
-    else setMsg({ ok: false, text: "En el agua que corre rápido el mercurio no se queda tanto. Busca donde el agua descansa." });
+    if (z.high) { setFound([...found, z.id]); setMsg({ ok: true, text: `${z.label}: aquí el mercurio se asienta y pasa a los peces.` }); }
+    else setMsg({ ok: false, text: "En el agua que corre rápido el mercurio no se queda tanto." });
   };
   return (
-    <GameShell title="Mundo 1 · El Río" back={back} progress={found.length / total}>
-      <Tilcayo text="El mercurio baja desde las minas con el agua. ¡Toca las zonas del río donde se junta más!" />
-      <div className="relative mt-5 h-96 overflow-hidden rounded-3xl bg-accent">
+    <GameShell title="🛶 NAVEGAR · El río" back={back} progress={found.length / total}>
+      <Bubble text={tip} />
+      <div className="relative mt-3 h-96 overflow-hidden rounded-3xl bg-accent">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
           <path d="M10 0 C 40 20, 70 25, 55 45 S 15 60, 30 75 S 75 85, 70 100 L 90 100 C 95 85, 55 80, 50 75 S 85 55, 75 45 S 40 15, 30 0 Z" className="fill-river" />
         </svg>
@@ -243,30 +229,165 @@ function World1({ onEnd, back }: { onEnd: (e: number) => void; back: () => void 
           </button>
         ))}
       </div>
-      <p className="mt-3 text-center font-bold">Encontradas: {found.length} / {total}</p>
-      {msg && <Feedback ok={msg.ok} text={msg.text} onNext={() => { setMsg(null); if (found.length >= total) onEnd(found.length + 1); }} />}
+      {msg && <Sheet ok={msg.ok} title={msg.ok ? "¡Muy bien! ⭐" : "¡Casi!"} text={msg.text} onNext={() => { setMsg(null); if (found.length >= total) onEnd(30); }} />}
     </GameShell>
   );
 }
 
-const fish = [
-  { q: "Sábalo: pez que come plantas y barro. ¿Cada cuánto se puede comer?", art: "🐟", options: ["Seguido, varias veces por semana", "Casi nunca"], correct: 0, tip: "Los peces que comen plantas (sábalo, bogo, pacú) acumulan poco mercurio. ¡Son buena comida!" },
-  { q: "Dorado: pez grande que come otros peces. ¿Cada cuánto?", art: "🐠", options: ["Todos los días", "De vez en cuando, en porciones chicas"], correct: 1, tip: "Los peces grandes cazadores juntan el mercurio de todos los peces que comen." },
-  { q: "Bogo: pez pequeño. ¿Es buena opción para la familia?", art: "🐟", options: ["Sí, buena opción", "No, hay que dejar de comer pescado"], correct: 0, tip: "¡No dejes el pescado! Da proteína y es nuestra comida. Solo elige bien cuál." },
-  { q: "Pintado / surubí grande. ¿Cocinarlo bien quita el mercurio?", art: "🐡", options: ["Sí, al cocinar se va", "No, el mercurio se queda"], correct: 1, tip: "Cocinar, ahumar o secar NO quita el mercurio. Secar el pescado incluso lo concentra." },
+/* COMER */
+const fishes = [
+  { name: "Sábalo", emoji: "🐟", hg: false },
+  { name: "Pacú", emoji: "🐠", hg: false },
+  { name: "Bogo", emoji: "🐟", hg: false },
+  { name: "Dorado", emoji: "🐡", hg: true },
 ];
+const MEALS = 6;
 
-function World2({ onEnd, back }: { onEnd: (e: number) => void; back: () => void }) {
-  return <Quiz items={fish} title="Mundo 2 · Los Peces" intro="Hay peces que comen plantas y peces que cazan. ¡Ayúdame a elegir la comida saludable!" back={back} onEnd={onEnd} />;
+function Comer({ onEnd, back }: { onEnd: (e: number) => void; back: () => void }) {
+  const [meals, setMeals] = useState(0);
+  const [bad, setBad] = useState(0);
+  const [last, setLast] = useState<string | null>(null);
+  const sad = bad >= 3;
+  const finished = meals >= MEALS || sad;
+  const text = sad
+    ? "No me siento bien… porque el dorado es mejor comerlo pocas veces a la semana para estar más sano. Prefiere sábalo, pacú o bogo."
+    : last === "Dorado" ? `Mmm… dorado otra vez. Es un pez grande que caza y junta mucho mercurio. (${bad}/3)`
+    : last ? `¡Rico ${last}! Los peces que comen plantas tienen poco mercurio.`
+    : "¡Tengo hambre! Dame de comer pescado. ¿Cuál me das?";
+  const feed = (f: (typeof fishes)[number]) => {
+    if (finished) return;
+    setMeals((m) => m + 1); setLast(f.name);
+    if (f.hg) setBad((b) => b + 1);
+  };
+  return (
+    <GameShell title="🐟 COMER · Alimenta a Tilcayo" back={back} progress={Math.min(meals / MEALS, 1)}>
+      <div className="card-game mt-4 flex flex-col items-center p-4">
+        <Bubble text={text} sad={sad} big />
+        <p className="mt-2 text-sm font-bold text-muted-foreground">Comidas: {meals}/{MEALS}</p>
+      </div>
+      <div className="mt-5 grid grid-cols-2 gap-3 pb-48">
+        {fishes.map((f) => (
+          <button key={f.name} disabled={finished} onClick={() => feed(f)} className="card-game flex flex-col items-center p-4 transition active:scale-90 disabled:opacity-50">
+            <span className="text-5xl">{f.emoji}</span>
+            <span className="mt-1 font-display text-lg font-extrabold">{f.name}</span>
+          </button>
+        ))}
+      </div>
+      {finished && (
+        <Sheet ok={!sad} title={sad ? "Tilcayo está triste 😢" : "¡Tilcayo está sano y feliz! ⭐"}
+          text={sad ? "El dorado tiene más mercurio. Cómelo pocas veces a la semana y en porciones chicas." : "Elegiste peces con poco mercurio. ¡No dejes el pescado, solo elige bien!"}
+          onNext={() => onEnd(sad ? 10 : 30)} />
+      )}
+    </GameShell>
+  );
 }
 
-const family = [
-  { q: "Rosa está embarazada. ¿Qué haría Tilcayo para su almuerzo?", art: "🤰", options: ["Sábalo o pacú", "Un dorado grande"], correct: 0, tip: "Embarazadas y bebés son los más sensibles. Mejor peces pequeños que comen plantas." },
-  { q: "El hijo de 3 años quiere pescado. ¿Qué le damos?", art: "🧒", options: ["Porción chica de pez pequeño", "Nada de pescado nunca"], correct: 0, tip: "Los niños necesitan pescado para crecer. Elige peces pequeños y porciones de su tamaño." },
-  { q: "Don Juan siente hormigueo en manos y le tiemblan los dedos. ¿Qué hace?", art: "🧓", options: ["Ignorarlo", "Ir a la posta de salud"], correct: 1, tip: "Hormigueo, temblores o cansancio pueden ser señales tempranas. La posta puede orientarte." },
-  { q: "Hay pescado seco guardado de la crecida. ¿Qué haría Tilcayo?", art: "🐟", options: ["Comer seco de peces chicos y mezclar con otros alimentos", "Comer seco de pez grande todos los días"], correct: 0, tip: "Al secar, el mercurio se concentra. Prefiere peces chicos y combina con huevo, frutas y yuca." },
+/* DECIDE */
+const decisions = [
+  { good: { emoji: "🦷✨", label: "Diente con empaste (resina)" }, bad: { emoji: "🦷⚫", label: "Diente con amalgama" },
+    okText: "¡Muy bien! Las amalgamas contienen mercurio y es mejor usar empastes, pero lo mejor es cuidar nuestros dientes.",
+    badText: "¡ALERTA! Las amalgamas contienen mercurio. Es mejor el empaste, pero especialmente es mejor prevenir las caries." },
+  { good: { emoji: "🧤🧼", label: "Lavarse las manos lejos de la mina" }, bad: { emoji: "✋💧", label: "Tocar el mercurio con las manos" },
+    okText: "¡Muy bien! El mercurio no se debe tocar ni calentar. Lava tus manos y aléjate de la quema de amalgama.",
+    badText: "¡ALERTA! Tocar o respirar mercurio es peligroso. Nunca lo manipules sin protección." },
+  { good: { emoji: "🐟", label: "Pez pequeño que come plantas" }, bad: { emoji: "🐡", label: "Pez grande cazador todos los días" },
+    okText: "¡Muy bien! Los peces pequeños tienen menos mercurio.",
+    badText: "¡ALERTA! Los peces grandes que cazan juntan más mercurio. Cómelos pocas veces." },
 ];
 
-function World3({ onEnd, back }: { onEnd: (e: number) => void; back: () => void }) {
-  return <Quiz items={family} title="Mundo 3 · Mi Familia" intro="En casa cuidamos a los más pequeños. ¿Qué haría Tilcayo?" back={back} onEnd={onEnd} />;
+function Decide({ onEnd, back, saber }: { onEnd: (e: number) => void; back: () => void; saber: () => void }) {
+  const [i, setI] = useState(0);
+  const [res, setRes] = useState<boolean | null>(null);
+  const [score, setScore] = useState(0);
+  const [flip] = useState(() => decisions.map((_, k) => k % 2 === 1));
+  const d = decisions[i]!;
+  const opts = flip[i] ? [d.bad, d.good] : [d.good, d.bad];
+  const choose = (o: typeof d.good) => { const ok = o === d.good; setRes(ok); if (ok) setScore((s) => s + 1); };
+  const next = () => {
+    if (i + 1 >= decisions.length) return onEnd(Math.round((score / decisions.length) * 40));
+    setI(i + 1); setRes(null);
+  };
+  return (
+    <GameShell title="🤔 DECIDE · ¿Qué es mejor?" back={back} progress={(i + (res !== null ? 1 : 0)) / decisions.length}>
+      <Bubble text="¿Cuál es mejor? Toca la tarjeta correcta." />
+      <div className="mt-4 grid grid-cols-2 gap-3 pb-56">
+        {opts.map((o) => (
+          <button key={o.label} disabled={res !== null} onClick={() => choose(o)} className="card-game flex aspect-[3/4] flex-col items-center justify-center gap-3 p-3 text-center transition active:scale-95">
+            <span className="text-6xl">{o.emoji}</span>
+            <span className="font-display font-bold">{o.label}</span>
+          </button>
+        ))}
+      </div>
+      {res !== null && <Sheet ok={res} title={res ? "¡Muy bien! ⭐" : "⚠️ ¡ALERTA!"} text={res ? d.okText : d.badText} onNext={next} saber={saber} />}
+    </GameShell>
+  );
+}
+
+function SaberMas({ back }: { back: () => void }) {
+  return (
+    <div className="min-h-screen p-5">
+      <button onClick={back} className="card-game h-10 w-10 font-bold">←</button>
+      <h1 className="mt-4 text-3xl font-extrabold">📖 Saber más</h1>
+      {[
+        ["¿Qué es el mercurio?", "Es un metal tóxico usado en la minería de oro. Llega al río, se transforma en metilmercurio y se acumula en los peces."],
+        ["Amalgamas dentales", "Las amalgamas (empastes plateados) tienen mercurio. Hoy existen empastes de resina. Lo mejor: cepillarse y prevenir caries."],
+        ["Pescado seguro", "Prefiere peces pequeños que comen plantas (sábalo, pacú, bogo). Los grandes cazadores (dorado, surubí) cómelos pocas veces."],
+        ["Señales de alerta", "Hormigueo, temblores o cansancio pueden ser señales. Acude a la posta de salud."],
+      ].map(([t, x]) => (
+        <div key={t} className="card-game mt-4 p-4"><p className="font-display text-lg font-extrabold">{t}</p><p className="text-sm">{x}</p></div>
+      ))}
+    </div>
+  );
+}
+
+function Badge() {
+  return (
+    <div className="relative mx-auto flex h-40 w-40 animate-pop items-center justify-center rounded-full border-8 border-secondary bg-primary">
+      <img src={tilcayo.url} alt="" className="h-28 w-28 rounded-full object-cover object-top" />
+      <span className="absolute -bottom-3 rounded-full bg-secondary px-3 py-1 font-display text-sm font-extrabold text-secondary-foreground">AGENTE SAIDA</span>
+    </div>
+  );
+}
+
+function Final({ points, registered, onPrizes, onMenu }: { points: number; registered: boolean; onPrizes: () => void; onMenu: () => void }) {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-primary p-6 text-center text-primary-foreground">
+      <Badge />
+      <p className="mt-8 font-display text-3xl font-extrabold text-secondary">¡ERES UN AGENTE SAIDA!</p>
+      <p className="mt-2 font-display text-2xl font-extrabold">Y TIENES {points} PUNTOS</p>
+      <p className="mt-6 text-lg">¿Quieres ver tus premios?</p>
+      {!registered && <p className="text-xs opacity-80">Regístrate para guardarlos</p>}
+      <button onClick={onPrizes} className="btn-game mt-4 w-full bg-secondary py-4 text-xl text-secondary-foreground">🏆 Ver mis premios</button>
+      <button onClick={onMenu} className="mt-4 text-sm underline">Volver a jugar</button>
+    </div>
+  );
+}
+
+function Premios({ name, points, back }: { name: string; points: number; back: () => void }) {
+  const prizes = [
+    { e: "🛶", t: "Navegante del río", need: 30 },
+    { e: "🐟", t: "Experto en pescado", need: 60 },
+    { e: "🦷", t: "Sonrisa sana", need: 80 },
+    { e: "🛡️", t: "Agente SAIDA", need: 100 },
+  ];
+  return (
+    <div className="min-h-screen p-5">
+      <button onClick={back} className="card-game h-10 w-10 font-bold">←</button>
+      <div className="mt-4"><Badge /></div>
+      <p className="mt-6 text-center font-display text-2xl font-extrabold">{name}</p>
+      <p className="text-center font-bold text-primary">⭐ {points} puntos</p>
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        {prizes.map((p) => {
+          const ok = points >= p.need;
+          return (
+            <div key={p.t} className={`card-game flex flex-col items-center p-4 text-center ${ok ? "" : "opacity-40 grayscale"}`}>
+              <span className="text-5xl">{ok ? p.e : "🔒"}</span>
+              <span className="mt-1 font-display font-extrabold">{p.t}</span>
+              <span className="text-xs text-muted-foreground">{p.need} pts</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
