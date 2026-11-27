@@ -202,6 +202,58 @@
 @utility mercury-drops { filter: drop-shadow(0 0 5px var(--secondary)); }
 @utility fish-swim { animation: fish-float 3s ease-in-out infinite; }
 
+@utility phone-desk {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: radial-gradient(120% 90% at 50% 0%, var(--river-deep) 0%, oklch(0.22 0.07 264) 55%, oklch(0.15 0.05 264) 100%);
+}
+@utility phone-shell {
+  position: relative;
+  width: min(400px, 100%);
+  height: min(860px, calc(100vh - 1.5rem));
+  height: min(860px, calc(100dvh - 1.5rem));
+  padding: 0.6rem;
+  border-radius: 3rem;
+  background: linear-gradient(155deg, oklch(0.38 0.02 264) 0%, oklch(0.17 0.02 264) 40%, oklch(0.3 0.02 264) 100%);
+  box-shadow: 0 26px 60px oklch(0.1 0.03 264 / 0.65), inset 0 0 0 2px oklch(0.5 0.03 264 / 0.6);
+}
+@utility phone-screen {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 2.45rem;
+  background: var(--color-primary);
+}
+@utility phone-notch {
+  position: absolute;
+  left: 50%;
+  top: 0.5rem;
+  z-index: 30;
+  height: 1.35rem;
+  width: 6.5rem;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: oklch(0.14 0.02 264);
+}
+@utility phone-home {
+  position: absolute;
+  bottom: 0.4rem;
+  left: 50%;
+  z-index: 30;
+  height: 0.35rem;
+  width: 6.5rem;
+  transform: translateX(-50%);
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--foreground) 40%, transparent);
+  pointer-events: none;
+}
+
 @keyframes current-flow { to { stroke-dashoffset: -82; } }
 @keyframes canoe-float { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-7px) rotate(2deg); } }
 @keyframes sun-glow { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.12); opacity: 1; } }

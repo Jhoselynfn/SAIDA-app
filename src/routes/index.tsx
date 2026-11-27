@@ -51,12 +51,17 @@ function App() {
   const saber = () => { setFrom(screen); setScreen("saber"); };
 
   return (
-    <main className="relative isolate mx-auto min-h-screen max-w-md overflow-hidden bg-primary text-primary-foreground shadow-2xl">
-      <div className="absolute inset-0" aria-hidden="true">
-        <img src={tilcayo.url} alt="" className="h-full w-full object-cover object-center" />
-        <div className="absolute inset-0 bg-primary/15" />
-      </div>
-      <div className="relative z-10">
+    <div className="phone-desk">
+      <div className="phone-shell">
+        <div className="phone-screen">
+          <div className="absolute inset-0" aria-hidden="true">
+            <img src={tilcayo.url} alt="" className="h-full w-full object-cover object-center" />
+            <div className="absolute inset-0 bg-primary/15" />
+          </div>
+          <div className="phone-notch" aria-hidden="true" />
+          <StatusBar />
+          <main className="relative z-10 min-h-0 flex-1 overflow-y-auto pb-6 text-primary-foreground">
+            <div className="relative z-10">
       {screen === "splash" && <Splash onSkip={() => setScreen("choice")} />}
       {screen === "choice" && <Choice onPrize={() => setScreen("register")} onPlay={() => { setRegistered(false); setScreen("menu"); }} />}
       {screen === "register" && <Register back={() => setScreen("choice")} onEnter={(n) => { setName(n); setRegistered(true); setScreen("menu"); }} />}
@@ -69,14 +74,50 @@ function App() {
       {screen === "saber" && <SaberMas back={() => setScreen(from)} />}
       {screen === "consejo" && <Consejo back={() => setScreen("menu")} />}
       {screen === "quiz" && <Quiz back={() => setScreen("menu")} onPass={() => { setPoints((p) => p + (done["quiz"] ? 0 : 20)); setDone({ ...done, quiz: true }); }} />}
+            </div>
+          </main>
+          <div className="phone-home" aria-hidden="true" />
+        </div>
       </div>
-    </main>
+    </div>
+  );
+}
+
+function StatusBar() {
+  const [now, setNow] = useState("");
+  useEffect(() => {
+    const f = () => setNow(new Date().toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" }));
+    f();
+    const t = setInterval(f, 15000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="relative z-20 flex h-9 shrink-0 items-center justify-between px-6 text-xs font-extrabold text-primary-foreground">
+      <span>{now}</span>
+      <div className="flex items-center gap-1.5">
+        <svg width="15" height="11" viewBox="0 0 16 12" fill="currentColor" aria-hidden="true">
+          <rect x="0" y="8" width="3" height="4" rx="1" />
+          <rect x="5" y="5" width="3" height="7" rx="1" />
+          <rect x="10" y="2" width="3" height="10" rx="1" />
+        </svg>
+        <svg width="15" height="11" viewBox="0 0 16 12" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
+          <path d="M2 5.5a9 9 0 0 1 12 0" />
+          <path d="M4.6 8a5.4 5.4 0 0 1 6.8 0" />
+          <circle cx="8" cy="10.3" r="1" fill="currentColor" stroke="none" />
+        </svg>
+        <svg width="22" height="11" viewBox="0 0 22 12" fill="none" aria-hidden="true">
+          <rect x="0.6" y="0.6" width="17.8" height="10.8" rx="3" stroke="currentColor" />
+          <rect x="2.4" y="2.4" width="11.5" height="7.2" rx="1.6" fill="currentColor" />
+          <rect x="19.6" y="4" width="2" height="4" rx="1" fill="currentColor" />
+        </svg>
+      </div>
+    </div>
   );
 }
 
 function Splash({ onSkip }: { onSkip: () => void }) {
   return (
-    <button onClick={onSkip} className="flex min-h-screen w-full flex-col items-center justify-between px-6 py-8 text-primary-foreground" aria-label="Entrar al juego">
+    <button onClick={onSkip} className="flex min-h-full w-full flex-col items-center justify-between px-6 py-8 text-primary-foreground" aria-label="Entrar al juego">
       <img src={saidaLogo.url} alt="Logo SAIDA" className="h-40 w-40 animate-pop rounded-full border-4 border-secondary object-cover object-center shadow-2xl" />
       <div className="w-full animate-pop rounded-[2rem] bg-primary/85 p-5 text-center shadow-2xl backdrop-blur-sm">
         <p className="text-lg font-bold text-secondary">Navega · Come · Decide</p>
@@ -91,7 +132,7 @@ function Splash({ onSkip }: { onSkip: () => void }) {
 
 function Choice({ onPrize, onPlay }: { onPrize: () => void; onPlay: () => void }) {
   return (
-    <div className="flex min-h-screen flex-col p-6">
+    <div className="flex min-h-full flex-col p-6">
       <div className="flex flex-col items-center rounded-3xl bg-primary/80 px-4 py-4 text-center backdrop-blur-sm">
         <p className="text-lg font-bold text-secondary">¿Cómo quieres jugar?</p>
       </div>
@@ -115,7 +156,7 @@ function Register({ onEnter, back }: { onEnter: (n: string) => void; back: () =>
   const [n, setN] = useState("");
   const [c, setC] = useState("");
   return (
-    <form className="flex min-h-screen flex-col gap-4 p-6" onSubmit={(e) => { e.preventDefault(); onEnter(n.trim() || "Amigo"); }}>
+    <form className="flex min-h-full flex-col gap-4 p-6" onSubmit={(e) => { e.preventDefault(); onEnter(n.trim() || "Amigo"); }}>
       <button type="button" onClick={back} className="card-game h-10 w-10 font-bold">←</button>
       <h1 className="text-3xl font-extrabold">Registro 🏆</h1>
       <label className="font-display text-lg font-bold">Tu nombre</label>
@@ -135,7 +176,7 @@ const games = [
 
 function Menu({ name, registered, points, done, go }: { name: string; registered: boolean; points: number; done: Record<string, boolean>; go: (s: Screen) => void }) {
   return (
-    <div className="min-h-screen p-5">
+    <div className="min-h-full p-5">
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button onClick={() => go("consejo")} aria-label="Consejo de Tilcayo"><img src={tilcayo.url} alt="" className="h-12 w-12 animate-bob rounded-full border-2 border-primary object-cover object-top" /></button>
@@ -168,7 +209,7 @@ function Menu({ name, registered, points, done, go }: { name: string; registered
 
 function GameShell({ title, back, children, progress }: { title: string; back: () => void; children: React.ReactNode; progress: number }) {
   return (
-    <div className="relative flex min-h-screen flex-col p-5">
+    <div className="relative flex min-h-full flex-col p-5">
       <div className="relative flex flex-1 flex-col">
         <div className="flex items-center gap-3">
           <button onClick={back} className="card-game h-10 w-10 font-bold" aria-label="Volver al menú">✕</button>
@@ -406,7 +447,7 @@ function Decide({ onEnd, back, saber }: { onEnd: (e: number) => void; back: () =
 
 function SaberMas({ back }: { back: () => void }) {
   return (
-    <div className="min-h-screen p-5">
+    <div className="min-h-full p-5">
       <button onClick={back} className="card-game h-10 w-10 font-bold">←</button>
       <h1 className="mt-4 text-3xl font-extrabold">📖 Saber más</h1>
       {[
@@ -432,7 +473,7 @@ function Badge() {
 
 function Final({ points, registered, onPrizes, onMenu }: { points: number; registered: boolean; onPrizes: () => void; onMenu: () => void }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center text-primary-foreground">
+    <div className="flex min-h-full flex-col items-center justify-center p-6 text-center text-primary-foreground">
       <Badge />
       <p className="mt-8 font-display text-3xl font-extrabold text-secondary">¡ERES UN AGENTE SAIDA!</p>
       <p className="mt-2 font-display text-2xl font-extrabold">Y TIENES {points} PUNTOS</p>
@@ -452,7 +493,7 @@ function Premios({ name, points, back }: { name: string; points: number; back: (
     { e: "🛡️", t: "Agente SAIDA", need: 100 },
   ];
   return (
-    <div className="min-h-screen p-5">
+    <div className="min-h-full p-5">
       <button onClick={back} className="card-game h-10 w-10 font-bold">←</button>
       <div className="mt-4"><Badge /></div>
       <p className="mt-6 text-center font-display text-2xl font-extrabold">{name}</p>
@@ -485,7 +526,7 @@ function Consejo({ back }: { back: () => void }) {
   const [i, setI] = useState(() => 0);
   const t = consejos[i]!;
   return (
-    <div className="flex min-h-screen flex-col items-center p-6 text-center">
+    <div className="flex min-h-full flex-col items-center p-6 text-center">
       <button onClick={back} className="card-game h-10 w-10 self-start font-bold">←</button>
       <img src={tilcayo.url} alt="Tilcayo" className="mt-4 h-40 w-40 animate-bob rounded-full border-4 border-secondary object-cover object-top" />
       <span className="mt-4 rounded-full bg-accent px-4 py-1 font-display text-sm font-extrabold text-accent-foreground">✔️ CONSEJO VERIFICADO</span>
@@ -516,7 +557,7 @@ function Quiz({ back, onPass }: { back: () => void; onPass: () => void }) {
     if (i + 1 >= quiz.length) { setEnd(true); if (n >= 4) onPass(); } else setI(i + 1);
   };
   if (end) return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center text-primary-foreground">
+    <div className="flex min-h-full flex-col items-center justify-center p-6 text-center text-primary-foreground">
       {pass ? <Badge /> : <span className="text-7xl">😿</span>}
       <p className="mt-8 font-display text-3xl font-extrabold">{pass ? "¡CERTIFICACIÓN APROBADA! 🎓" : "Casi lo logras"}</p>
       <p className="mt-2 text-lg">Respuestas correctas: {ok}/{quiz.length}</p>
