@@ -129,7 +129,7 @@
   }
 
   body {
-    background-color: var(--color-background);
+    background-color: var(--color-primary);
     color: var(--color-foreground);
   }
 }
@@ -149,6 +149,7 @@
 @utility card-game {
   border-radius: 1.5rem;
   background: var(--card);
+  color: var(--card-foreground);
   box-shadow: 0 6px 0 var(--border);
 }
 @keyframes bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-10px) } }

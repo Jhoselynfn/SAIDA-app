@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import tilcayo from "@/assets/tilcayo.jpg.asset.json";
 import saidaLogo from "@/assets/saida-logo.jpeg.asset.json";
-import { RiverScene } from "@/components/RiverScene";
+import rioTilcayo from "@/assets/rio-tilcayo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -52,7 +52,12 @@ function App() {
   const saber = () => { setFrom(screen); setScreen("saber"); };
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-background">
+    <main className="relative isolate mx-auto min-h-screen max-w-md overflow-hidden bg-primary text-primary-foreground shadow-2xl">
+      <div className="absolute inset-0" aria-hidden="true">
+        <img src={tilcayo.url} alt="" className="h-full w-full object-cover object-center" />
+        <div className="absolute inset-0 bg-primary/15" />
+      </div>
+      <div className="relative z-10">
       {screen === "splash" && <Splash onSkip={() => setScreen("choice")} />}
       {screen === "choice" && <Choice onPrize={() => setScreen("register")} onPlay={() => { setRegistered(false); setScreen("menu"); }} />}
       {screen === "register" && <Register back={() => setScreen("choice")} onEnter={(n) => { setName(n); setRegistered(true); setScreen("menu"); }} />}
@@ -65,18 +70,22 @@ function App() {
       {screen === "saber" && <SaberMas back={() => setScreen(from)} />}
       {screen === "consejo" && <Consejo back={() => setScreen("menu")} />}
       {screen === "quiz" && <Quiz back={() => setScreen("menu")} onPass={() => { setPoints((p) => p + (done["quiz"] ? 0 : 20)); setDone({ ...done, quiz: true }); }} />}
+      </div>
     </main>
   );
 }
 
 function Splash({ onSkip }: { onSkip: () => void }) {
   return (
-    <button onClick={onSkip} className="flex min-h-screen w-full flex-col items-center justify-center bg-primary px-6 text-primary-foreground">
-      <img src={saidaLogo.url} alt="Logo SAIDA" className="h-80 w-64 animate-pop rounded-[2rem] border-4 border-secondary object-cover object-center shadow-2xl" />
-      <h1 className="mt-4 animate-pop text-5xl font-extrabold leading-none text-secondary">{APP}</h1>
-      <p className="mt-3 text-sm opacity-80">Navega · Come · Decide</p>
-      <div className="mt-10 flex gap-2">
-        {[0, 1, 2].map((i) => <span key={i} className="h-3 w-3 animate-bounce rounded-full bg-secondary" style={{ animationDelay: `${i * 0.15}s` }} />)}
+    <button onClick={onSkip} className="flex min-h-screen w-full flex-col items-center justify-between px-6 py-8 text-primary-foreground" aria-label="Entrar a Tilcayo y el Río">
+      <img src={saidaLogo.url} alt="Logo SAIDA" className="h-40 w-40 animate-pop rounded-full border-4 border-secondary object-cover object-center shadow-2xl" />
+      <div className="w-full animate-pop rounded-[2rem] bg-primary/85 p-5 text-center shadow-2xl backdrop-blur-sm">
+        <h1 className="text-4xl font-extrabold leading-none text-secondary">{APP}</h1>
+        <p className="mt-2 text-sm font-bold">Navega · Come · Decide</p>
+        <div className="mt-4 flex justify-center gap-2">
+          {[0, 1, 2].map((i) => <span key={i} className="h-3 w-3 animate-bounce rounded-full bg-secondary" style={{ animationDelay: `${i * 0.15}s` }} />)}
+        </div>
+        <p className="mt-3 text-xs font-bold opacity-80">Toca para comenzar</p>
       </div>
     </button>
   );
@@ -85,10 +94,9 @@ function Splash({ onSkip }: { onSkip: () => void }) {
 function Choice({ onPrize, onPlay }: { onPrize: () => void; onPlay: () => void }) {
   return (
     <div className="flex min-h-screen flex-col p-6">
-      <div className="flex flex-col items-center pt-6">
-        <img src={tilcayo.url} alt="" className="h-32 w-32 rounded-full border-4 border-secondary object-cover object-top" />
-        <h1 className="mt-3 text-3xl font-extrabold text-primary">{APP}</h1>
-        <p className="text-sm text-muted-foreground">¿Cómo quieres jugar?</p>
+      <div className="flex flex-col items-center rounded-3xl bg-primary/80 px-4 py-4 text-center backdrop-blur-sm">
+        <h1 className="text-3xl font-extrabold text-secondary">{APP}</h1>
+        <p className="mt-1 text-sm font-bold">¿Cómo quieres jugar?</p>
       </div>
       <div className="mt-8 flex flex-1 flex-col gap-5">
         <button onClick={onPrize} className="btn-game flex flex-1 flex-col items-center justify-center gap-2 bg-secondary p-6 text-secondary-foreground">
@@ -135,7 +143,7 @@ function Menu({ name, registered, points, done, go }: { name: string; registered
         <div className="flex items-center gap-3">
           <button onClick={() => go("consejo")} aria-label="Consejo de Tilcayo"><img src={tilcayo.url} alt="" className="h-12 w-12 animate-bob rounded-full border-2 border-primary object-cover object-top" /></button>
           <div>
-            <p className="text-xs text-muted-foreground">{registered ? "Hola," : "Modo"}</p>
+            <p className="text-xs font-bold text-primary-foreground/80">{registered ? "Hola," : "Modo"}</p>
             <p className="font-display text-xl font-extrabold">{registered ? name : "Solo jugar"}</p>
           </div>
         </div>
@@ -155,8 +163,8 @@ function Menu({ name, registered, points, done, go }: { name: string; registered
         ))}
       </div>
       <button onClick={() => go("quiz")} className="btn-game mt-5 w-full bg-primary py-4 text-xl text-primary-foreground">🎓 Quiz de certificación {done["quiz"] && "✅"}</button>
-      <p className="mt-2 text-center text-xs text-muted-foreground">Toca a Tilcayo para un consejo verificado 💡</p>
-      <p className="mt-8 text-center text-[11px] text-muted-foreground">Prototipo · Recomendaciones pendientes de validación por la autoridad sanitaria</p>
+      <p className="mt-2 text-center text-xs font-bold text-primary-foreground/90">Toca a Tilcayo para un consejo verificado 💡</p>
+      <p className="mt-8 text-center text-[11px] font-bold text-primary-foreground/80">Prototipo · Recomendaciones pendientes de validación por la autoridad sanitaria</p>
     </div>
   );
 }
@@ -209,7 +217,7 @@ const zones = [
   { id: "curiche", label: "Curiche", helper: "Agua detenida", icon: "🌿", x: "79%", y: "29%", high: true },
   { id: "remanso", label: "Remanso", helper: "Agua quieta", icon: "💧", x: "43%", y: "43%", high: true },
   { id: "rapido", label: "Rápido del río", helper: "Agua que corre", icon: "🌊", x: "24%", y: "65%", high: false },
-  { id: "barro", label: "Barro del fondo", helper: "Sedimentos", icon: "🟤", x: "63%", y: "79%", high: true },
+  { id: "barro", label: "Barro del fondo", helper: "Sedimentos", icon: "🟤", x: "73%", y: "76%", high: true },
 ];
 
 function Navegar({ onEnd, back }: { onEnd: (e: number) => void; back: () => void }) {
@@ -249,8 +257,17 @@ function Navegar({ onEnd, back }: { onEnd: (e: number) => void; back: () => void
       </div>
       <Bubble text={tip} />
       <div className="relative mt-3 h-[430px] overflow-hidden rounded-[2rem] border-4 border-secondary shadow-river">
-        <RiverScene />
-        <span className="absolute right-2 top-2 rounded-full bg-card px-3 py-1 text-xs font-extrabold shadow-md">⛏️ MINA · aquí empieza</span>
+        <img src={rioTilcayo.url} alt="Vista satelital real del río y sus meandros" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-primary/10" />
+        <svg viewBox="0 0 400 440" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden="true">
+          <g fill="var(--secondary)" stroke="var(--secondary-foreground)" strokeWidth="1.5" className="mercury-drops">
+            <circle r="7"><animateMotion dur="8s" repeatCount="indefinite" path="M340 30C390 100 300 130 315 170S260 200 230 170 190 220 150 230 100 300 30 390" /></circle>
+            <circle r="6"><animateMotion dur="8s" begin="-2.7s" repeatCount="indefinite" path="M340 30C390 100 300 130 315 170S260 200 230 170 190 220 150 230 100 300 30 390" /></circle>
+            <circle r="5"><animateMotion dur="8s" begin="-5.4s" repeatCount="indefinite" path="M340 30C390 100 300 130 315 170S260 200 230 170 190 220 150 230 100 300 30 390" /></circle>
+          </g>
+          <text x="185" y="210" fontSize="48" className="canoe-bob">🛶</text>
+        </svg>
+        <span className="absolute right-2 top-2 rounded-full bg-card px-3 py-1 text-xs font-extrabold text-card-foreground shadow-md">⛏️ MINA · aquí empieza</span>
 
         {zones.map((z) => {
           const isFound = found.includes(z.id);
@@ -288,7 +305,7 @@ function Navegar({ onEnd, back }: { onEnd: (e: number) => void; back: () => void
           </div>
         )}
       </div>
-      <p className="mt-3 text-center text-xs font-bold text-muted-foreground">Las zonas correctas se iluminan y ganan una señal de mercurio ⚠️</p>
+      <p className="mt-3 text-center text-xs font-bold text-primary-foreground/90">Las zonas correctas se iluminan y ganan una señal de mercurio ⚠️</p>
       {msg && (
         <Sheet
           ok={msg.ok}
@@ -418,7 +435,7 @@ function Badge() {
 
 function Final({ points, registered, onPrizes, onMenu }: { points: number; registered: boolean; onPrizes: () => void; onMenu: () => void }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-primary p-6 text-center text-primary-foreground">
+    <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center text-primary-foreground">
       <Badge />
       <p className="mt-8 font-display text-3xl font-extrabold text-secondary">¡ERES UN AGENTE SAIDA!</p>
       <p className="mt-2 font-display text-2xl font-extrabold">Y TIENES {points} PUNTOS</p>
@@ -442,7 +459,7 @@ function Premios({ name, points, back }: { name: string; points: number; back: (
       <button onClick={back} className="card-game h-10 w-10 font-bold">←</button>
       <div className="mt-4"><Badge /></div>
       <p className="mt-6 text-center font-display text-2xl font-extrabold">{name}</p>
-      <p className="text-center font-bold text-primary">⭐ {points} puntos</p>
+      <p className="text-center font-bold text-secondary">⭐ {points} puntos</p>
       <div className="mt-5 grid grid-cols-2 gap-3">
         {prizes.map((p) => {
           const ok = points >= p.need;
@@ -476,7 +493,7 @@ function Consejo({ back }: { back: () => void }) {
       <img src={tilcayo.url} alt="Tilcayo" className="mt-4 h-40 w-40 animate-bob rounded-full border-4 border-secondary object-cover object-top" />
       <span className="mt-4 rounded-full bg-accent px-4 py-1 font-display text-sm font-extrabold text-accent-foreground">✔️ CONSEJO VERIFICADO</span>
       <div className="card-game mt-4 p-5 text-lg">{t}</div>
-      <p className="mt-2 text-[11px] text-muted-foreground">Fuente: Guía ORO 3.1 · pendiente de validación sanitaria</p>
+      <p className="mt-2 text-[11px] font-bold text-primary-foreground/80">Fuente: Guía ORO 3.1 · pendiente de validación sanitaria</p>
       <button onClick={() => speak(t)} className="btn-game mt-6 w-full bg-primary py-4 text-xl text-primary-foreground">🔊 Escuchar</button>
       <button onClick={() => setI((i + 1) % consejos.length)} className="btn-game mt-3 w-full bg-secondary py-3 text-lg text-secondary-foreground">Otro consejo 💡</button>
     </div>
@@ -502,7 +519,7 @@ function Quiz({ back, onPass }: { back: () => void; onPass: () => void }) {
     if (i + 1 >= quiz.length) { setEnd(true); if (n >= 4) onPass(); } else setI(i + 1);
   };
   if (end) return (
-    <div className={`flex min-h-screen flex-col items-center justify-center p-6 text-center ${pass ? "bg-primary text-primary-foreground" : ""}`}>
+    <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center text-primary-foreground">
       {pass ? <Badge /> : <span className="text-7xl">😿</span>}
       <p className="mt-8 font-display text-3xl font-extrabold">{pass ? "¡CERTIFICACIÓN APROBADA! 🎓" : "Casi lo logras"}</p>
       <p className="mt-2 text-lg">Respuestas correctas: {ok}/{quiz.length}</p>
@@ -518,7 +535,7 @@ function Quiz({ back, onPass }: { back: () => void; onPass: () => void }) {
       <div className="mt-6 flex flex-col gap-4">
         {q.o.map((o, k) => <button key={o} onClick={() => answer(k)} className="card-game p-5 font-display text-xl font-bold active:scale-95">{o}</button>)}
       </div>
-      <p className="mt-4 text-center text-sm text-muted-foreground">Pregunta {i + 1}/{quiz.length} · Necesitas 4 para aprobar</p>
+      <p className="mt-4 text-center text-sm font-bold text-primary-foreground/90">Pregunta {i + 1}/{quiz.length} · Necesitas 4 para aprobar</p>
     </GameShell>
   );
 }
