@@ -95,15 +95,15 @@ function Choice({ onPrize, onPlay }: { onPrize: () => void; onPlay: () => void }
       <div className="flex flex-col items-center rounded-3xl bg-primary/80 px-4 py-4 text-center backdrop-blur-sm">
         <p className="text-lg font-bold text-secondary">¿Cómo quieres jugar?</p>
       </div>
-      <div className="mt-8 flex flex-1 flex-col gap-5">
-        <button onClick={onPrize} className="btn-game flex flex-1 flex-col items-center justify-center gap-2 bg-secondary p-6 text-secondary-foreground">
-          <span className="text-6xl">🏆</span>
-          <span className="text-2xl">Ganar premios</span>
+      <div className="mt-8 flex flex-1 flex-col justify-center gap-4">
+        <button onClick={onPrize} className="btn-game flex flex-col items-center justify-center gap-1 bg-secondary px-6 py-5 text-secondary-foreground">
+          <span className="text-5xl">🏆</span>
+          <span className="text-xl">Ganar premios</span>
           <span className="text-sm font-normal opacity-80">Regístrate y guarda tus puntos</span>
         </button>
-        <button onClick={onPlay} className="btn-game flex flex-1 flex-col items-center justify-center gap-2 bg-accent p-6 text-accent-foreground">
-          <span className="text-6xl">🎮</span>
-          <span className="text-2xl">Solo jugar</span>
+        <button onClick={onPlay} className="btn-game flex flex-col items-center justify-center gap-1 bg-accent px-6 py-5 text-accent-foreground">
+          <span className="text-5xl">🎮</span>
+          <span className="text-xl">Solo jugar</span>
           <span className="text-sm font-normal opacity-80">Entra directo, sin registro</span>
         </button>
       </div>
@@ -122,7 +122,7 @@ function Register({ onEnter, back }: { onEnter: (n: string) => void; back: () =>
       <input value={n} onChange={(e) => setN(e.target.value)} placeholder="Nombre" className="rounded-2xl border-2 border-input bg-card px-4 py-3 text-lg outline-none focus:border-primary" />
       <label className="font-display text-lg font-bold">Tu comunidad</label>
       <input value={c} onChange={(e) => setC(e.target.value)} placeholder="Comunidad" className="rounded-2xl border-2 border-input bg-card px-4 py-3 text-lg outline-none focus:border-primary" />
-      <button className="btn-game mt-auto bg-secondary py-4 text-xl text-secondary-foreground">¡Empezar!</button>
+      <button className="btn-game mt-auto bg-secondary py-3 text-lg text-secondary-foreground">¡Empezar!</button>
     </form>
   );
 }
@@ -149,17 +149,17 @@ function Menu({ name, registered, points, done, go }: { name: string; registered
       <p className="mt-6 font-display text-2xl font-extrabold">Elige un juego</p>
       <div className="mt-5 flex flex-col gap-4">
         {games.map((g) => (
-          <button key={g.id} onClick={() => go(g.id)} className="card-game flex items-center gap-4 p-5 text-left transition active:scale-95">
-            <span className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-4xl ${g.color}`}>{g.emoji}</span>
+          <button key={g.id} onClick={() => go(g.id)} className="card-game flex items-center gap-3 p-4 text-left transition active:scale-95">
+            <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl ${g.color}`}>{g.emoji}</span>
             <span className="flex-1">
-              <span className="block font-display text-2xl font-extrabold">{g.title}</span>
+              <span className="block font-display text-xl font-extrabold">{g.title}</span>
               <span className="block text-sm text-muted-foreground">{g.learn}</span>
             </span>
-            {done[g.id] && <span className="text-2xl">✅</span>}
+            {done[g.id] && <span className="text-xl">✅</span>}
           </button>
         ))}
       </div>
-      <button onClick={() => go("quiz")} className="btn-game mt-5 w-full bg-primary py-4 text-xl text-primary-foreground">🎓 Quiz de certificación {done["quiz"] && "✅"}</button>
+      <button onClick={() => go("quiz")} className="btn-game mt-5 w-full bg-primary py-3 text-lg text-primary-foreground">🎓 Quiz de certificación {done["quiz"] && "✅"}</button>
       <p className="mt-2 text-center text-xs font-bold text-primary-foreground/90">Toca a Tilcayo para un consejo verificado 💡</p>
       <p className="mt-8 text-center text-[11px] font-bold text-primary-foreground/80">Prototipo · Recomendaciones pendientes de validación por la autoridad sanitaria</p>
     </div>
@@ -438,7 +438,7 @@ function Final({ points, registered, onPrizes, onMenu }: { points: number; regis
       <p className="mt-2 font-display text-2xl font-extrabold">Y TIENES {points} PUNTOS</p>
       <p className="mt-6 text-lg">¿Quieres ver tus premios?</p>
       {!registered && <p className="text-xs opacity-80">Regístrate para guardarlos</p>}
-      <button onClick={onPrizes} className="btn-game mt-4 w-full bg-secondary py-4 text-xl text-secondary-foreground">🏆 Ver mis premios</button>
+      <button onClick={onPrizes} className="btn-game mt-4 w-full bg-secondary py-3 text-lg text-secondary-foreground">🏆 Ver mis premios</button>
       <button onClick={onMenu} className="mt-4 text-sm underline">Volver a jugar</button>
     </div>
   );
@@ -491,7 +491,7 @@ function Consejo({ back }: { back: () => void }) {
       <span className="mt-4 rounded-full bg-accent px-4 py-1 font-display text-sm font-extrabold text-accent-foreground">✔️ CONSEJO VERIFICADO</span>
       <div className="card-game mt-4 p-5 text-lg">{t}</div>
       <p className="mt-2 text-[11px] font-bold text-primary-foreground/80">Fuente: Guía ORO 3.1 · pendiente de validación sanitaria</p>
-      <button onClick={() => speak(t)} className="btn-game mt-6 w-full bg-primary py-4 text-xl text-primary-foreground">🔊 Escuchar</button>
+      <button onClick={() => speak(t)} className="btn-game mt-6 w-full bg-primary py-3 text-lg text-primary-foreground">🔊 Escuchar</button>
       <button onClick={() => setI((i + 1) % consejos.length)} className="btn-game mt-3 w-full bg-secondary py-3 text-lg text-secondary-foreground">Otro consejo 💡</button>
     </div>
   );
@@ -521,7 +521,7 @@ function Quiz({ back, onPass }: { back: () => void; onPass: () => void }) {
       <p className="mt-8 font-display text-3xl font-extrabold">{pass ? "¡CERTIFICACIÓN APROBADA! 🎓" : "Casi lo logras"}</p>
       <p className="mt-2 text-lg">Respuestas correctas: {ok}/{quiz.length}</p>
       {pass && <p className="mt-1 font-bold text-secondary">+20 puntos ⭐ · Agente SAIDA certificado</p>}
-      {!pass && <button onClick={() => { setI(0); setOk(0); setEnd(false); }} className="btn-game mt-6 w-full bg-secondary py-4 text-xl text-secondary-foreground">Intentar otra vez</button>}
+      {!pass && <button onClick={() => { setI(0); setOk(0); setEnd(false); }} className="btn-game mt-6 w-full bg-secondary py-3 text-lg text-secondary-foreground">Intentar otra vez</button>}
       <button onClick={back} className="mt-4 text-sm underline">Volver al menú</button>
     </div>
   );
