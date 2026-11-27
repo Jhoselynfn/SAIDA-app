@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import tilcayo from "@/assets/tilcayo.jpg.asset.json";
+import saidaLogo from "@/assets/saida-logo.jpeg.asset.json";
+import rioTilcayo from "@/assets/rio-tilcayo.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,7 +72,7 @@ function App() {
 function Splash({ onSkip }: { onSkip: () => void }) {
   return (
     <button onClick={onSkip} className="flex min-h-screen w-full flex-col items-center justify-center bg-primary px-6 text-primary-foreground">
-      <img src={tilcayo.url} alt="Tilcayo, el gatito del monte" className="h-72 w-auto animate-bob object-contain" />
+      <img src={saidaLogo.url} alt="Logo SAIDA" className="h-80 w-64 animate-pop rounded-[2rem] border-4 border-secondary object-cover object-center shadow-2xl" />
       <h1 className="mt-4 animate-pop text-5xl font-extrabold leading-none text-secondary">{APP}</h1>
       <p className="mt-3 text-sm opacity-80">Navega · Come · Decide</p>
       <div className="mt-10 flex gap-2">
@@ -159,17 +161,25 @@ function Menu({ name, registered, points, done, go }: { name: string; registered
   );
 }
 
-function GameShell({ title, back, children, progress }: { title: string; back: () => void; children: React.ReactNode; progress: number }) {
+function GameShell({ title, back, children, progress, bg }: { title: string; back: () => void; children: React.ReactNode; progress: number; bg?: string }) {
   return (
-    <div className="flex min-h-screen flex-col p-5">
-      <div className="flex items-center gap-3">
-        <button onClick={back} className="card-game h-10 w-10 font-bold">✕</button>
-        <div className="h-4 flex-1 overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progress * 100}%` }} />
+    <div className="relative flex min-h-screen flex-col p-5">
+      {bg && (
+        <>
+          <img src={bg} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-background/70" />
+        </>
+      )}
+      <div className="relative flex flex-1 flex-col">
+        <div className="flex items-center gap-3">
+          <button onClick={back} className="card-game h-10 w-10 font-bold">✕</button>
+          <div className="h-4 flex-1 overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progress * 100}%` }} />
+          </div>
         </div>
+        <h2 className="mt-4 font-display text-2xl font-extrabold">{title}</h2>
+        {children}
       </div>
-      <h2 className="mt-4 font-display text-2xl font-extrabold">{title}</h2>
-      {children}
     </div>
   );
 }
@@ -202,10 +212,10 @@ function Sheet({ ok, title, text, onNext, saber }: { ok: boolean; title: string;
 
 /* NAVEGAR */
 const zones = [
-  { id: "a", label: "Agua que corre rápido", x: "15%", y: "18%", high: false },
-  { id: "b", label: "Remanso / agua quieta", x: "60%", y: "40%", high: true },
-  { id: "c", label: "Barro del fondo", x: "25%", y: "62%", high: true },
-  { id: "d", label: "Lago o curiche", x: "68%", y: "80%", high: true },
+  { id: "a", label: "Agua que corre rápido", x: "10%", y: "82%", high: false },
+  { id: "b", label: "Remanso / agua quieta", x: "34%", y: "58%", high: true },
+  { id: "c", label: "Barro del fondo", x: "58%", y: "42%", high: true },
+  { id: "d", label: "Lago o curiche", x: "88%", y: "60%", high: true },
 ];
 
 function Navegar({ onEnd, back }: { onEnd: (e: number) => void; back: () => void }) {
@@ -219,12 +229,10 @@ function Navegar({ onEnd, back }: { onEnd: (e: number) => void; back: () => void
     else setMsg({ ok: false, text: "En el agua que corre rápido el mercurio no se queda tanto." });
   };
   return (
-    <GameShell title="🛶 NAVEGAR · El río" back={back} progress={found.length / total}>
+    <GameShell title="🛶 NAVEGAR · El río" back={back} progress={found.length / total} bg={rioTilcayo.url}>
       <Bubble text={tip} />
-      <div className="relative mt-3 h-96 overflow-hidden rounded-3xl bg-accent">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-          <path d="M10 0 C 40 20, 70 25, 55 45 S 15 60, 30 75 S 75 85, 70 100 L 90 100 C 95 85, 55 80, 50 75 S 85 55, 75 45 S 40 15, 30 0 Z" className="fill-river" />
-        </svg>
+      <div className="relative mt-3 h-96 overflow-hidden rounded-3xl border-4 border-card">
+        <img src={rioTilcayo.url} alt="Río visto desde el satélite" className="absolute inset-0 h-full w-full object-cover" />
         <span className="absolute left-2 top-2 rounded-full bg-card px-2 py-1 text-xs font-bold">⛏️ Mina</span>
         {zones.map((z) => (
           <button key={z.id} onClick={() => tap(z)} style={{ left: z.x, top: z.y }}
