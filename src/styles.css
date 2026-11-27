@@ -97,6 +97,17 @@
   --input: oklch(0.88 0.04 90);
   --ring: oklch(0.36 0.15 264);
   --river: oklch(0.62 0.12 220);
+  --river-deep: oklch(0.38 0.11 232);
+  --river-shine: oklch(0.76 0.13 207);
+  --river-foam: oklch(0.95 0.04 205);
+  --river-sky: oklch(0.87 0.08 202);
+  --river-sky-light: oklch(0.94 0.06 175);
+  --river-sand: oklch(0.79 0.11 80);
+  --leaf: oklch(0.53 0.14 144);
+  --leaf-dark: oklch(0.35 0.11 153);
+  --leaf-light: oklch(0.7 0.15 132);
+  --earth: oklch(0.42 0.1 57);
+  --shadow-river: 0 8px 0 var(--river-deep), 0 16px 30px color-mix(in oklab, var(--river-deep) 25%, transparent);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -144,3 +155,59 @@
 @utility animate-bob { animation: bob 2.4s ease-in-out infinite; }
 @keyframes pop { 0% { transform: scale(.6); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
 @utility animate-pop { animation: pop .5s cubic-bezier(.2,1.4,.4,1) both; }
+
+@utility shadow-river { box-shadow: var(--shadow-river); }
+@utility river-zone {
+  border: 3px solid var(--card);
+  border-radius: 1rem;
+  background: color-mix(in oklab, var(--card) 94%, transparent);
+  color: var(--card-foreground);
+  box-shadow: 0 4px 0 var(--river-deep), 0 7px 16px color-mix(in oklab, var(--foreground) 24%, transparent);
+  transition: transform .16s, background .2s, border-color .2s;
+  &:active { transform: translate(-50%, -46%) scale(.96); }
+  &:disabled { opacity: 1; }
+}
+@utility river-zone-found {
+  border-color: var(--secondary);
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  animation: found-pop .45s cubic-bezier(.2,1.4,.4,1) both;
+}
+@utility river-zone-hint {
+  position: absolute;
+  right: -.45rem;
+  top: -.65rem;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: .15rem .35rem;
+  font-family: var(--font-display);
+  font-size: .55rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  animation: hint-pulse 1.5s ease-in-out infinite;
+}
+@utility river-current { animation: current-flow 2.2s linear infinite; }
+@utility canoe-bob {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: canoe-float 2s ease-in-out infinite;
+}
+@utility river-sun {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sun-glow 3s ease-in-out infinite;
+}
+@utility mercury-drops { filter: drop-shadow(0 0 5px var(--secondary)); }
+@utility fish-swim { animation: fish-float 3s ease-in-out infinite; }
+
+@keyframes current-flow { to { stroke-dashoffset: -82; } }
+@keyframes canoe-float { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-7px) rotate(2deg); } }
+@keyframes sun-glow { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.12); opacity: 1; } }
+@keyframes hint-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes found-pop { 0% { scale: .8; } 100% { scale: 1; } }
+@keyframes fish-float { 0%,100% { transform: translateX(0); } 50% { transform: translateX(8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .river-current, .canoe-bob, .river-sun, .river-zone-hint, .fish-swim { animation: none; }
+}

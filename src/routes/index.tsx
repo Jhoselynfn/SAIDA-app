@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import tilcayo from "@/assets/tilcayo.jpg.asset.json";
 import saidaLogo from "@/assets/saida-logo.jpeg.asset.json";
-import rioTilcayo from "@/assets/rio-tilcayo.png.asset.json";
+import { RiverScene } from "@/components/RiverScene";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -161,18 +161,12 @@ function Menu({ name, registered, points, done, go }: { name: string; registered
   );
 }
 
-function GameShell({ title, back, children, progress, bg }: { title: string; back: () => void; children: React.ReactNode; progress: number; bg?: string }) {
+function GameShell({ title, back, children, progress }: { title: string; back: () => void; children: React.ReactNode; progress: number }) {
   return (
     <div className="relative flex min-h-screen flex-col p-5">
-      {bg && (
-        <>
-          <img src={bg} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-background/70" />
-        </>
-      )}
       <div className="relative flex flex-1 flex-col">
         <div className="flex items-center gap-3">
-          <button onClick={back} className="card-game h-10 w-10 font-bold">✕</button>
+          <button onClick={back} className="card-game h-10 w-10 font-bold" aria-label="Volver al menú">✕</button>
           <div className="h-4 flex-1 overflow-hidden rounded-full bg-muted">
             <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progress * 100}%` }} />
           </div>
@@ -212,36 +206,97 @@ function Sheet({ ok, title, text, onNext, saber }: { ok: boolean; title: string;
 
 /* NAVEGAR */
 const zones = [
-  { id: "a", label: "Agua que corre rápido", x: "10%", y: "82%", high: false },
-  { id: "b", label: "Remanso / agua quieta", x: "34%", y: "58%", high: true },
-  { id: "c", label: "Barro del fondo", x: "58%", y: "42%", high: true },
-  { id: "d", label: "Lago o curiche", x: "88%", y: "60%", high: true },
+  { id: "curiche", label: "Curiche", helper: "Agua detenida", icon: "🌿", x: "79%", y: "29%", high: true },
+  { id: "remanso", label: "Remanso", helper: "Agua quieta", icon: "💧", x: "43%", y: "43%", high: true },
+  { id: "rapido", label: "Rápido del río", helper: "Agua que corre", icon: "🌊", x: "24%", y: "65%", high: false },
+  { id: "barro", label: "Barro del fondo", helper: "Sedimentos", icon: "🟤", x: "63%", y: "79%", high: true },
 ];
 
 function Navegar({ onEnd, back }: { onEnd: (e: number) => void; back: () => void }) {
+  const [started, setStarted] = useState(false);
   const [found, setFound] = useState<string[]>([]);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string; finished: boolean } | null>(null);
   const total = zones.filter((z) => z.high).length;
-  const tip = found.length === 0 ? "¡Sube a mi canoa! El mercurio baja desde las minas. Toca los lugares del río donde se junta más." : found.length < total ? `¡Bien! Llevamos ${found.length}. Sigue buscando donde el agua descansa.` : "¡Encontraste todos! Ahí los peces se cargan de mercurio.";
+  const tip = found.length === 0
+    ? "Las gotas doradas representan el mercurio. ¡Toca las zonas del paisaje y descubre dónde se acumula!"
+    : found.length < total
+      ? `¡Llevamos ${found.length} de ${total}! Busca donde el agua descansa o donde hay barro.`
+      : "¡Misión cumplida! En esas zonas el mercurio se acumula y puede pasar a los peces.";
+
   const tap = (z: (typeof zones)[number]) => {
     if (found.includes(z.id)) return;
-    if (z.high) { setFound([...found, z.id]); setMsg({ ok: true, text: `${z.label}: aquí el mercurio se asienta y pasa a los peces.` }); }
-    else setMsg({ ok: false, text: "En el agua que corre rápido el mercurio no se queda tanto." });
+    if (z.high) {
+      const nextFound = [...found, z.id];
+      const finished = nextFound.length === total;
+      setFound(nextFound);
+      setMsg({
+        ok: true,
+        text: finished
+          ? "Encontraste el remanso, el barro y el curiche. ¡Ganaste 30 puntos y 3 gotas de sabiduría!"
+          : `${z.label}: aquí el mercurio se asienta poco a poco y puede pasar a los peces.`,
+        finished,
+      });
+    } else {
+      setMsg({ ok: false, text: "Aquí la corriente arrastra el mercurio. Busca mejor donde el agua está quieta o hay barro.", finished: false });
+    }
   };
+
   return (
-    <GameShell title="🛶 NAVEGAR · El río" back={back} progress={found.length / total} bg={rioTilcayo.url}>
-      <Bubble text={tip} />
-      <div className="relative mt-3 h-96 overflow-hidden rounded-3xl border-4 border-card">
-        <img src={rioTilcayo.url} alt="Río visto desde el satélite" className="absolute inset-0 h-full w-full object-cover" />
-        <span className="absolute left-2 top-2 rounded-full bg-card px-2 py-1 text-xs font-bold">⛏️ Mina</span>
-        {zones.map((z) => (
-          <button key={z.id} onClick={() => tap(z)} style={{ left: z.x, top: z.y }}
-            className={`absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 text-2xl ${found.includes(z.id) ? "border-secondary bg-destructive" : "animate-pulse border-card bg-card/40"}`}>
-            {found.includes(z.id) ? "⚠️" : "?"}
-          </button>
-        ))}
+    <GameShell title="🛶 NAVEGAR · El río" back={back} progress={found.length / total}>
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <span className="rounded-full bg-primary px-3 py-1 font-display text-xs font-extrabold text-primary-foreground">🎯 MISIÓN: 3 ZONAS</span>
+        <span className="rounded-full bg-secondary px-3 py-1 font-display text-sm font-extrabold text-secondary-foreground">💧 {found.length}/{total}</span>
       </div>
-      {msg && <Sheet ok={msg.ok} title={msg.ok ? "¡Muy bien! ⭐" : "¡Casi!"} text={msg.text} onNext={() => { setMsg(null); if (found.length >= total) onEnd(30); }} />}
+      <Bubble text={tip} />
+      <div className="relative mt-3 h-[430px] overflow-hidden rounded-[2rem] border-4 border-secondary shadow-river">
+        <RiverScene />
+        <span className="absolute right-2 top-2 rounded-full bg-card px-3 py-1 text-xs font-extrabold shadow-md">⛏️ MINA · aquí empieza</span>
+
+        {zones.map((z) => {
+          const isFound = found.includes(z.id);
+          return (
+            <button
+              key={z.id}
+              aria-label={`Explorar ${z.label}`}
+              disabled={!started || msg !== null}
+              onClick={() => tap(z)}
+              style={{ left: z.x, top: z.y }}
+              className={`river-zone absolute w-32 -translate-x-1/2 -translate-y-1/2 px-2 py-2 text-left ${isFound ? "river-zone-found" : ""}`}
+            >
+              <span className="flex items-center gap-1.5">
+                <span className="text-2xl">{isFound ? "⚠️" : z.icon}</span>
+                <span className="font-display text-sm font-extrabold leading-none">{z.label}</span>
+              </span>
+              <span className="mt-1 block text-[10px] font-bold opacity-80">{isFound ? "¡Mercurio encontrado!" : z.helper}</span>
+              {!isFound && <span className="river-zone-hint">TOCA</span>}
+            </button>
+          );
+        })}
+
+        {!started && (
+          <div className="absolute inset-0 flex items-end bg-primary/45 p-3" role="dialog" aria-label="Cómo jugar Navegar">
+            <div className="card-game w-full animate-pop p-4 text-center">
+              <p className="font-display text-2xl font-extrabold text-primary">Tu misión 🔎</p>
+              <p className="mt-1 text-sm font-bold">Encuentra las 3 zonas donde se acumula el mercurio.</p>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-xs font-bold">
+                <span className="rounded-xl bg-muted p-2">👆<br />Toca una zona</span>
+                <span className="rounded-xl bg-muted p-2">⚠️<br />Descubre por qué</span>
+                <span className="rounded-xl bg-muted p-2">💧<br />Gana 30 puntos</span>
+              </div>
+              <button onClick={() => setStarted(true)} className="btn-game mt-4 w-full bg-secondary py-3 text-lg text-secondary-foreground">¡A navegar! 🛶</button>
+            </div>
+          </div>
+        )}
+      </div>
+      <p className="mt-3 text-center text-xs font-bold text-muted-foreground">Las zonas correctas se iluminan y ganan una señal de mercurio ⚠️</p>
+      {msg && (
+        <Sheet
+          ok={msg.ok}
+          title={msg.finished ? "¡Misión cumplida! 🎉" : msg.ok ? "¡Zona encontrada! +10 💧" : "¡Sigue buscando! 🌊"}
+          text={msg.text}
+          onNext={() => { const finished = msg.finished; setMsg(null); if (finished) onEnd(30); }}
+        />
+      )}
     </GameShell>
   );
 }
