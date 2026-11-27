@@ -7,9 +7,9 @@ import rioTilcayo from "@/assets/rio-tilcayo.png.asset.json";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Tilcayo y el Río — Juego sobre mercurio y salud" },
+      { title: "SAIDA — Juego sobre mercurio y salud" },
       { name: "description", content: "Navega, come y decide con Tilcayo: aprende a cuidarte del mercurio y conviértete en Agente SAIDA." },
-      { property: "og:title", content: "Tilcayo y el Río" },
+      { property: "og:title", content: "SAIDA" },
       { property: "og:description", content: "Tres juegos para aprender sobre mercurio, pescado seguro y buenas decisiones." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -19,7 +19,6 @@ export const Route = createFileRoute("/")({
 });
 
 type Screen = "splash" | "choice" | "register" | "menu" | "navegar" | "comer" | "decide" | "final" | "premios" | "saber" | "consejo" | "quiz";
-const APP = "Tilcayo y el Río";
 
 function speak(text: string) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -77,11 +76,10 @@ function App() {
 
 function Splash({ onSkip }: { onSkip: () => void }) {
   return (
-    <button onClick={onSkip} className="flex min-h-screen w-full flex-col items-center justify-between px-6 py-8 text-primary-foreground" aria-label="Entrar a Tilcayo y el Río">
+    <button onClick={onSkip} className="flex min-h-screen w-full flex-col items-center justify-between px-6 py-8 text-primary-foreground" aria-label="Entrar al juego">
       <img src={saidaLogo.url} alt="Logo SAIDA" className="h-40 w-40 animate-pop rounded-full border-4 border-secondary object-cover object-center shadow-2xl" />
       <div className="w-full animate-pop rounded-[2rem] bg-primary/85 p-5 text-center shadow-2xl backdrop-blur-sm">
-        <h1 className="text-4xl font-extrabold leading-none text-secondary">{APP}</h1>
-        <p className="mt-2 text-sm font-bold">Navega · Come · Decide</p>
+        <p className="text-lg font-bold text-secondary">Navega · Come · Decide</p>
         <div className="mt-4 flex justify-center gap-2">
           {[0, 1, 2].map((i) => <span key={i} className="h-3 w-3 animate-bounce rounded-full bg-secondary" style={{ animationDelay: `${i * 0.15}s` }} />)}
         </div>
@@ -95,8 +93,7 @@ function Choice({ onPrize, onPlay }: { onPrize: () => void; onPlay: () => void }
   return (
     <div className="flex min-h-screen flex-col p-6">
       <div className="flex flex-col items-center rounded-3xl bg-primary/80 px-4 py-4 text-center backdrop-blur-sm">
-        <h1 className="text-3xl font-extrabold text-secondary">{APP}</h1>
-        <p className="mt-1 text-sm font-bold">¿Cómo quieres jugar?</p>
+        <p className="text-lg font-bold text-secondary">¿Cómo quieres jugar?</p>
       </div>
       <div className="mt-8 flex flex-1 flex-col gap-5">
         <button onClick={onPrize} className="btn-game flex flex-1 flex-col items-center justify-center gap-2 bg-secondary p-6 text-secondary-foreground">
